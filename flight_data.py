@@ -3,15 +3,12 @@ from keys import API_KEY, TE_ENDPOINT
 
 
 class FlightData:
+    def __init__(self, price, origin_city, origin_airport, destination_city, destination_airport, out_date, return_date):
+        self.price = price
+        self.origin_city = origin_city
+        self.origin_airport = origin_airport
+        self.destination_city = destination_city
+        self.destination_airport = destination_airport
+        self.out_date = out_date
+        self.return_date = return_date
 
-    def getFlights(self,search_data):
-        search_endpoint = f"{TE_ENDPOINT}/search"
-        headers = {"apikey": API_KEY}
-        # query = {"term": city, "location_types": "city"}
-        response = requests.get(url=search_endpoint, headers=headers, params=search_data)
-        results = response.json()
-        if len(results["data"]) > 0:
-            endres = results["data"][0]["price"]
-        else:
-            endres = -1
-        return endres

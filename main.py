@@ -1,9 +1,9 @@
 from pprint import pprint
 from data_manager import DataManager
 from flight_search import FlightSearch
-from flight_data import FlightData
 import datetime as dt
-
+from twilio.rest import Client
+from keys import auth_token, account_sid, FROM_NUMBER, TO_NUMBER
 
 dataset = DataManager()
 sheet_data = dataset.getData()
@@ -12,7 +12,7 @@ pprint(sheet_data)
 # print(sheet_data[1]['iataCode'] =='')
 today_date = dt.datetime.now()
 flight_search = FlightSearch()
-flight_data = FlightData()
+#flight_data = FlightData()
 departure_city = input("Where would you like to travel from?")
 from_city = flight_search.getDestination(departure_city)
 for i in range(0, len(sheet_data)):
@@ -30,9 +30,24 @@ for i in range(0, len(sheet_data)):
         "curr": "EUR"
     }
     # print(search_data)
-    result_of_search = flight_data.getFlights(search_data)
-    sheet_data[i]['lowestPrice'] = result_of_search
-    print(sheet_data[i]['city'], ": ", result_of_search)
+    result_of_search = flight_search.getFlights(search_data)
 
+    if (not isinstance(result_of_search, int)) and (result_of_search < sheet_data[i]['lowestPrice']):
+
+        client = Client(account_sid, auth_token)
+        message = client.messages \
+            .create(
+            body=f"Low price alert! Only {result_of_search}USD to travel from {departure_city} to {sheet_data[i]['city']} \n from to \n From Judy's script",
+            from_=FROM_NUMBER,
+            to=TO_NUMBER
+        )
+        print(message.status)
+        print(result_of_search)
+        sheet_data[i]['lowestPrice'] = result_of_search.price
+        print(sheet_data[i]['city'], ": ", result_of_search.price)
+    else:
+        print(f"No flight to {sheet_data[i]['city']}")
 dataset.update_data()
 pprint(sheet_data[3])
+
+## TODO: put the twilio API to the notification class after testing
